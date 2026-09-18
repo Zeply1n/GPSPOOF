@@ -5,7 +5,7 @@ set -euo pipefail
 PYTHON_VERSION="3.13"
 VENV_DIR=".venv"
 INSTALL_SYSTEM_PACKAGES=true
-PMD_VERSION="4.18.0"
+PMD_VERSION="4.26.6"
 
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"; cd "$ROOT"
 echo "Setting up GPSPOOF in $ROOT"
@@ -38,7 +38,18 @@ fi
 "$VENV_DIR/bin/python" -m pip install -e '.[test]'
 mkdir -p data logs runtime; chmod 700 runtime
 echo "Installed pymobiledevice3: $($VENV_DIR/bin/python -c 'import importlib.metadata; print(importlib.metadata.version("pymobiledevice3"))')"
-"$VENV_DIR/bin/python" -c 'import fastapi, uvicorn, pymobiledevice3; import gpspoof; print("Import check: OK")'
+"$VENV_DIR/bin/python" - <<'PY'
+import fastapi
+import pymobiledevice3
+import uvicorn
+from pymobiledevice3.remote.rsd_tunnel import PreferredRsdTunnel
+from pymobiledevice3.services.dvt.instruments.dvt_provider import DvtProvider
+from pymobiledevice3.services.dvt.instruments.location_simulation import LocationSimulation
+
+import gpspoof
+
+print("Import and pymobiledevice3 API check: OK")
+PY
 if "$VENV_DIR/bin/pymobiledevice3" usbmux list >/dev/null 2>&1; then "$VENV_DIR/bin/pymobiledevice3" usbmux list || true
 else echo "usbmux check: unavailable/no phone (safe to continue)"; fi
 "$VENV_DIR/bin/python" -m pytest -q
