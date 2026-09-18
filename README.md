@@ -14,7 +14,7 @@ chmod +x setup.sh
 ./run.sh
 ```
 
-Open <http://127.0.0.1:5000>. `setup.sh` creates `.venv`, installs the pinned `pymobiledevice3 4.18.0`, checks usbmux safely, and runs tests. It never changes phone location. It prefers Python 3.13, uses `uv` to obtain it when `uv` is already installed, and otherwise uses a compatible system Python (3.11+). Edit the constants at the top of `setup.sh` if system packages must not be installed.
+Open <http://127.0.0.1:5000>. `setup.sh` creates `.venv`, installs the pinned `pymobiledevice3 4.18.0`, checks usbmux safely, and runs tests. It never changes phone location. It prefers Python 3.13, uses `uv` to obtain it when `uv` is already installed, and otherwise uses a compatible system Python (3.11+). Edit the constants at the top of `setup.sh` if system packages must not be installed. The installer only asks APT for a genuinely missing required package; it does not install or upgrade `curl`, and the watchdog uses Python's standard library for health checks. This avoids unrelated package-version conflicts on Debian/backports systems.
 
 `run.sh` holds an advisory `flock`, runs `watchdog.sh`, and applies a process-lifetime `systemd-inhibit` sleep/idle inhibitor when available. It never changes permanent power settings. A genuinely suspended machine cannot maintain USB/RSD; some laptop firmware or desktop policies may override inhibition. Use `PREVENT_SLEEP=false ./run.sh` to skip it and `USE_WATCHDOG=false ./run.sh` to run directly.
 
