@@ -10,30 +10,17 @@ PMD_VERSION="4.18.0"
 ROOT="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"; cd "$ROOT"
 echo "Setting up GPSPOOF in $ROOT"
 if $INSTALL_SYSTEM_PACKAGES && command -v apt-get >/dev/null; then
-  # Install only packages whose corresponding runtime tools are actually
-  # missing. In particular, do not request curl (the watchdog uses Python's
-  # standard library): requesting an unnecessary curl upgrade can make setup
-  # fail on Debian systems with partially synchronized backports repositories.
-  required_packages=()
-  command -v usbmuxd >/dev/null 2>&1 || required_packages+=(usbmuxd)
-  if ((${#required_packages[@]})); then
-    echo "Installing required host packages: ${required_packages[*]} (sudo may prompt)..."
+  missing=(); for c in git curl usbmuxd; do command -v "$c" >/dev/null || missing+=("$c"); done
+  if ((${#missing[@]})); then
+    echo "Installing host packages (sudo may prompt)..."
     sudo apt-get update
-    sudo apt-get install -y --no-install-recommends "${required_packages[@]}"
-  else
-    echo "Required host packages are already available; skipping apt."
+    sudo apt-get install -y git curl usbmuxd libimobiledevice-utils build-essential python3-dev
   fi
 fi
 if command -v "python${PYTHON_VERSION}" >/dev/null; then PY="python${PYTHON_VERSION}"
 elif command -v uv >/dev/null; then uv python install "$PYTHON_VERSION"; PY="$(uv python find "$PYTHON_VERSION")"
 else PY=python3; echo "Warning: Python $PYTHON_VERSION unavailable; using $($PY --version)" >&2; fi
-if [[ ! -x "$VENV_DIR/bin/python" ]]; then
-  if ! "$PY" -m venv "$VENV_DIR"; then
-    echo "Unable to create a virtual environment." >&2
-    echo "Install the venv module for $($PY --version 2>&1) (often: sudo apt install python3-venv), then rerun setup." >&2
-    exit 1
-  fi
-fi
+if [[ ! -x "$VENV_DIR/bin/python" ]]; then "$PY" -m venv "$VENV_DIR"; fi
 "$VENV_DIR/bin/python" -m pip install --upgrade pip
 "$VENV_DIR/bin/python" -m pip install -e '.[test]'
 mkdir -p data logs runtime; chmod 700 runtime
