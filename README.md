@@ -14,7 +14,7 @@ chmod +x setup.sh
 ./run.sh
 ```
 
-Open <http://127.0.0.1:5000>. `setup.sh` creates `.venv`, installs the pinned `pymobiledevice3 4.18.0`, checks usbmux safely, and runs tests. It never changes phone location. It prefers Python 3.13, uses `uv` to obtain it when `uv` is already installed, and otherwise uses a compatible system Python (3.11+). Edit the constants at the top of `setup.sh` if system packages must not be installed. The installer only asks APT for a genuinely missing required package; it does not install or upgrade `curl`, and the watchdog uses Python's standard library for health checks. This avoids unrelated package-version conflicts on Debian/backports systems.
+Open <http://127.0.0.1:5000>. `setup.sh` creates `.venv`, installs the pinned `pymobiledevice3 4.26.6`, verifies the exact RSD/DVT/location APIs used at runtime, checks usbmux safely, and runs tests. It never changes phone location. It prefers Python 3.13, uses `uv` to obtain it when `uv` is already installed, and otherwise uses a compatible system Python (3.11+). Edit the constants at the top of `setup.sh` if system packages must not be installed. The installer only asks APT for a genuinely missing required package; it does not install or upgrade `curl`, and the watchdog uses Python's standard library for health checks. This avoids unrelated package-version conflicts on Debian/backports systems.
 
 `run.sh` holds an advisory `flock`, runs `watchdog.sh`, and applies a process-lifetime `systemd-inhibit` sleep/idle inhibitor when available. It never changes permanent power settings. A genuinely suspended machine cannot maintain USB/RSD; some laptop firmware or desktop policies may override inhibition. Use `PREVENT_SLEEP=false ./run.sh` to skip it and `USE_WATCHDOG=false ./run.sh` to run directly.
 
@@ -60,7 +60,7 @@ All important manual constants are together at the top of `gpspoof.py`. `AUTO_TU
 
 With `AUTO_TUNE=False`, profile settings are neither loaded as active settings nor written; exact manual reassert, RPC timeout, reconnect, burst and recycle constants are used. Automatic transport recovery and watchdogs remain enabled. The reliability score/confidence concerns host/session evidence plus human reports and never claims to measure actual Core Location.
 
-`ENABLE_HEARTBEAT` is exposed, but 4.18.0's `HeartbeatService` selects a service based on provider type and owns its exchange loop rather than offering a passive DVT-channel ping. GPSPOOF conservatively relies on set RPCs, usbmux discovery, RSD lifetime, and its watchdog; it does not start a competing heartbeat on the active RSD provider. This avoids presenting heartbeat as GPS confirmation.
+`ENABLE_HEARTBEAT` is exposed, but the pinned release's `HeartbeatService` selects a service based on provider type and owns its exchange loop rather than offering a passive DVT-channel ping. GPSPOOF conservatively relies on set RPCs, usbmux discovery, RSD lifetime, and its watchdog; it does not start a competing heartbeat on the active RSD provider. This avoids presenting heartbeat as GPS confirmation.
 
 ## Device preparation and real-device test
 
